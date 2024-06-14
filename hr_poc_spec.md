@@ -4,7 +4,7 @@
 
 # API
 
-## 開場說明 [POST] /v1/instruction
+## 開場說明 [POST] /v1/welcome_message
 
 ### Request
 
@@ -32,58 +32,77 @@
 }
 ```
 
-## 送出新的問題 [POST] /v1/conversation
+## 送出新的使用者問題 [POST] /v1/conversation
 <!-- conversation (tmp) -->
 
 ### Request
 ```json
 {
     "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
-    "data": //current_question + history_questions&responses
-        [
-            "user_question3",
+    "data":
+    {
+        "user_submit": "你好，我想問一年可以請多少天病假",
+        "user_submit_epochtime": "1718064549001", // ms
+        "conversation_history": 
+        {
+            "conversation":[
+            // 使用者問題 , chatbot回答
+            ["小精靈你好", "你好，有什麼我可以幫助你的嗎？"], //第一個對話
+            ["可以告訴我最近的麥當勞要怎麼走嗎", "不好意思，這個問題與差勤、請假無關"], //第二個對話
+            ["可以告訴我要怎麼請病假嗎", "你可以到iHR系統上去申請"], //第三個對話
+            ],
+            "conversation_epochtime":
             [
-                ["user_question1", "chatbot_response1"],
-                ["user_question2", "chatbot_response2"]
+               //submit time  //response start//response end
+                ["1718064450004", "1718064470002", "1718064473002"],
+                ["1718064500003", "1718064530001", "1718064532003"], 
+                ["1718064535002", "1718064540006", "1718064545009"]
+            ],
+            "conversation_info": //要提供的markdown
+            [
+                "", 
+                "",
+                "<https://www.google.com/> 參見p1, p2"
             ]
-        ],
-    // "event_data": null, # gradio api有，但不知道要做什麼用的
-    // "fn_index":0, # gradio api有，但不知道要做什麼用的
-    // "trigger_id":8, # gradio api有，但不知道要做什麼用的
-    
+        }
+    }
 }
 ```
-
-```json
-{
-    "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
-    "data": //current_question + history_questions&responses
-        [
-            "user_question3",
-            [
-                ["user_question1", "chatbot_response1"],
-                ["user_question2", "chatbot_response2"]
-            ]
-        ],
-    // "event_data": null, # gradio api有，但不知道要做什麼用的
-    // "fn_index":0, # gradio api有，但不知道要做什麼用的
-    // "trigger_id":8, # gradio api有，但不知道要做什麼用的
-    
-}
-```
+### Response
 
 ```json
 {
     "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
     "data":
-        [
-            "",
+    {
+        "user_submit": "",
+        "user_submit_epochtime": "",
+        "conversation_history": 
+        {
+            "conversation":[
+            // 使用者問題 , chatbot回答
+            ["小精靈你好", "你好，有什麼我可以幫助你的嗎？"], //第一個對話, index=0
+            ["可以告訴我最近的麥當勞要怎麼走嗎", "不好意思，這個問題與差勤、請假無關"], //第二個對話, index=1
+            ["可以告訴我要怎麼請病假嗎", "你可以到iHR系統上去申請"], //第三個對話, index=2
+            ["你好，我想問一年可以請多少天病假", ""] //新增第四個對話, index=3
+            ],
+            "conversation_epochtime":
             [
-                ["user_question1", "chatbot_response1"],
-                ["user_question2", "chatbot_response2"],
-                ["uesr_question3", ""]
+                //submit time     //response start //response end
+                ["1718064450004", "1718064470002", "1718064473002"],
+                ["1718064500003", "1718064530001", "1718064532003"], 
+                ["1718064535002", "1718064540006", "1718064545009"],
+                ["1718064549001", "", ""] //新增第四個對話 
+            ],
+            "conversation_info": //固定資訊(markdown格式)
+            [
+                "", 
+                "",
+                "<https://www.google.com/> 參見p1, p2",
+                ""
             ]
-        ]
+        }
+    }
 }
 ```
 ###
@@ -93,78 +112,81 @@
 ### Request
 ```json
 {
-    "session_id": "z4ubh11d6ef",
+    "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
 }
 ```
 
 ### Response 
+
+<!-- example1 -->
 ```json
 {
     {
-        "msg":"estimation",
-        // "event_id":"dc02961ca6aa47a28ba8b2732fece954",
-        // "rank":0,
-        // "queue_size":1,
-        // "rank_eta":10.38514494895935
+        "status": "process_starts", // 有process_generating, process_completed
+        "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
+        "epochtime": "1718064550000" 
     }
 }
 ```
 
+<!-- example2 -->
 ```json
 {
     {
-        "msg":"process_starts",
-        "event_id":"dc02961ca6aa47a28ba8b2732fece954",
-        // "eta":10.38514494895935
+        "status": "process_generating",
+        "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
+        "epochtime": "1718064551000",
+        "data": "根據"
     }	
-
 }
 ```
 
 ```json
 {
-    {"msg": "process_generating", // process_completed, close_stream
-    // "event_id": "2c8572b069dd47c586f0f192f83b08e5", // gradio api有，但不知道要做什麼用的，原理是什麼
-    "output": 
-        {"data": [[["test", ""]]], 
-        "is_generating": true, 
-        // "duration": 1.0497472286224365, 
-        // "average_duration": 1.0497472286224365
-        }, 
-    // "success": true
+    {
+        "status": "process_generating",
+        "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
+        "epochtime": "1718064551002",
+        "data": "差勤管理"
+    }	
+}
+```
+
+<!-- example3 -->
+```json
+{
+    {
+        "status": "process_completed", 
+        "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
+        "epochtime": "171806491023",
+        "data": "根據差勤管理的規定，一年有5天有薪病假。",
+        "info": "<https://www.google.com/> 參見p3, p4" //markdown格式
     }	
 }
 ``` 
-
-```json
-{
-    {"msg":"process_completed",
-    // "event_id":"dc02961ca6aa47a28ba8b2732fece954",
-    "output":
-    {"data":
-
-    [[["test","台積電今天召開股東常會，這是將退休的董事長劉德音最後一次主持股東會。他表示，在去年基期較低的狀況下，台積電今年又將是大大成長的一年；人工智慧應用帶動先進半導體需求，是台積電強項，對於未來幾年成長深具信心。"],["myquestion2","台積電今天召開股東常會，這是將退休的董事長劉德音最後一次主持股東會。他表示，在去年基期較低的狀況下，台積電今年又將是大大成長的一年；人工智慧應用帶動先進半導體需求，是台積電強項，對於未來幾年成長深具信心。"]]],
-    
-    "markdown": "![](https://www.google.com/) p1, p2",
-
-    "is_generating":false,
-    "duration":0.0003695487976074219,
-    "average_duration":0.09979360774882788,"render_config":null,
-    "changed_state_ids":[]},
-    "success":true}
-}
-```
-<https://www.google.com/> p1, p2
 
 ## 機器人回覆回饋 [POST] /v1/response_feedback
 
 ### Request
 ```json
 {
-    {"session_id" "z4ubh11d6ef":, 
-    
-     "index": 0, //哪一個歷史對話
-     "feedback": "good" //
+    {
+        "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
+        "feedback": {
+            "0": "good",
+            "2": "bad",
+        }
+    }
+}
+```
+```json
+{
+    {
+        "session_id": "938c2cc0dcc05f2b68c4287040cfcf71",
+        "feedback": {
+            "0": "good",
+            "2": "bad",
+        }
     }
 }
 ```
